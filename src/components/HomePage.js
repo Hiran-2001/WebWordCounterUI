@@ -21,7 +21,7 @@ function HomePage() {
 
   const onSubmit = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/postcount", data);
+      const res = await axios.post("https://webscraper-api-npar.onrender.com/api/postcount", data);
       console.log(res);
       setResponse(res.data);
       fetchData();
@@ -34,7 +34,7 @@ function HomePage() {
   };
 
   const fetchData = async () => {
-    const res = await axios.get("http://localhost:5000/api/previous");
+    const res = await axios.get("https://webscraper-api-npar.onrender.com/api/previous");
     if (res) {
       setPrevious(res.data.previous);
       console.log(res.data.previous);
@@ -49,7 +49,7 @@ function HomePage() {
 
   const onDelete = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/api/delete/${id}`);
+      const res = await axios.delete(`https://webscraper-api-npar.onrender.com/api/delete/${id}`);
       successToast(res.data.message);
     } catch (error) {}
 
