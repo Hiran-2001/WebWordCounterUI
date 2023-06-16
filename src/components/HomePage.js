@@ -1,11 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { MdDelete } from "react-icons/md";
+import { ToastContainer} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { errorToast, successToast } from "./Toast";
 
 function HomePage() {
   const [data, setData] = useState({
     url: "",
   });
   const [response, setResponse] = useState(null);
+  const [previous, setPrevious] = useState([]);
+
   const setHandler = (e) => {
     const { name, value } = e.target;
     setData((prev) => {
@@ -14,11 +20,42 @@ function HomePage() {
   };
 
   const onSubmit = async () => {
-    const res = await axios.post("http://localhost:5000/api/postcount", data);
-    console.log(res);
-    setResponse(res.data);
+    try {
+      const res = await axios.post("http://localhost:5000/api/postcount", data);
+      console.log(res);
+      setResponse(res.data);
+      fetchData();
+    } catch (error) {
+      if (error.response.data.status === 400) {
+        errorToast(error.response.data);
+       
+      }
+    }
   };
 
+  const fetchData = async () => {
+    const res = await axios.get("http://localhost:5000/api/previous");
+    if (res) {
+      setPrevious(res.data.previous);
+      console.log(res.data.previous);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    return () => {};
+  }, []);
+
+  const onDelete = async (id) => {
+    try {
+      const res = await axios.delete(`http://localhost:5000/api/delete/${id}`);
+      successToast(res.data.message);
+    } catch (error) {}
+
+    fetchData();
+    
+  };
   return (
     <div>
       <div style={{ paddingTop: "50px" }}>
@@ -45,61 +82,71 @@ function HomePage() {
         </div>
       </div>
       <div className="container">
-        <div className="add_btn">
-          {/* <Link to='/register'><button className="btn btn-primary" > Add User</button>   </Link>  */}
-        </div>
+        <div className="add_btn"></div>
 
-
-
-            {response ? (
-        <table className="table mt-5 ">
-          <thead>
-            <tr className="table-primary">
-              <th scope="col">Domain Name</th>
-              <th scope="col">word Count</th>
-            </tr>
-          </thead>
-          <tbody>
-
-              <>
-                <tr>
-                  <td>{response.url}</td>
-                  <td>{response.words}</td>
-
-                </tr>
-              </>
-
-          </tbody>
-        </table>
-            ) : (
-              <>
-                <div>
-                  <h1>No url</h1>
-                </div>
-              </>
-            )}
-
+        {response ? (
+          <div style={{ backgroundColor: "red" }}>
             <table className="table mt-5 ">
-          <thead>
-            <tr className="table-primary">
-              <th scope="col">Domain Name</th>
-              <th scope="col">word Count</th>
-            </tr>
-          </thead>
-          <tbody>
-
-              <>
-                <tr>
-                  <td>{response.url}</td>
-                  <td>{response.words}</td>
-
+              <thead>
+                <tr className="table-primary">
+                  <th scope="col">Domain Name</th>
+                  <th scope="col">word</th>
                 </tr>
-              </>
+              </thead>
+              <tbody>
+                <>
+                  <tr>
+                    <td>{response.url}</td>
+                    <td>{response.words}</td>
+                  </tr>
+                </>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <></>
+        )}
 
-          </tbody>
-        </table>
+        <div style={{ marginTop: "20px" }} className="history">
+          <h3 className="">History</h3>
 
-        
+          <table className="table mt-2 ">
+            <thead>
+              <tr className="table-primary">
+                <th scope="col">No</th>
+                <th scope="col">Domain Name</th>
+                <th scope="col">word Count</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <ToastContainer />
+              {previous ? (
+                previous.map((e, id) => {
+                  return (
+                    <>
+                      <tr>
+                        <td>{id + 1}</td>
+                        <td>{e.url}</td>
+                        <td>{e.words}</td>
+                        <td>
+                          <button
+                            onClick={() => onDelete(e._id)}
+                            className="btn btn-danger pt-1 "
+                          >
+                            <MdDelete />
+                          </button>
+                        </td>
+                      </tr>
+                    </>
+                  );
+                })
+              ) : (
+                <></>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
