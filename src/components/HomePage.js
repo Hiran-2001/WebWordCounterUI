@@ -44,7 +44,6 @@ function HomePage() {
   useEffect(() => {
     fetchData();
 
-    return () => {};
   }, []);
 
   const onDelete = async (id) => {
